@@ -3,9 +3,9 @@ import numpy as np
 class KMeans(object):
   """ a K-means clustering with L2 distance """
 
-  def __init__(self, num_clusters=3):
+  def __init__(self, num_clusters=3, dim=1):
     self.num_clusters = num_clusters
-    self.centroids = np.random.randn(self.num_clusters)
+    self.centroids = np.random.randn(self.num_clusters, dim)
 
   def train(self, X, epsilon=1e-12):
     """
@@ -25,15 +25,20 @@ class KMeans(object):
         # Compute the l2 distance between all test points and all cluster       #
         # centroid then assign them to the nearest centroid.                    #
         #########################################################################
-        pass
+        dists = self.compute_distances_no_loops(X)
+        y = self.predict_labels(dists)
         #########################################################################
         # TODO:                                                                 #
         # After assigning data to the nearest centroid, recompute the centroids #
         # then calculate the differrent between old centroids and the new one   #
         #########################################################################
         new_centroids = np.zeros(self.centroids.shape)
-        break
-        pass
+        for i in range(self.centroids.shape[0]):
+          if X[y==i].shape[0] > 0:
+            new_centroids[i] = np.mean(X[y == i], axis=0)
+          else:
+            new_centroids[i] = self.centroids[i]
+        change = np.sqrt(np.sum((new_centroids - self.centroids)**2, axis=1))
         #########################################################################
         #                         END OF YOUR CODE                              #
         #########################################################################
@@ -85,7 +90,7 @@ class KMeans(object):
         # cluster centroid, and store the result in dists[i, j]. You should #
         # not use a loop over dimension.                                    #
         #####################################################################
-        pass
+        dists[i][j] = np.sqrt(np.sum((X[i] - self.centroids[j])**2))
         #####################################################################
         #                       END OF YOUR CODE                            #
         #####################################################################
@@ -106,7 +111,7 @@ class KMeans(object):
       # Compute the l2 distance between the ith test point and all cluster  #
       # centroids, and store the result in dists[i, :].                     #
       #######################################################################
-      pass
+      dists[i] = np.sqrt(np.sum((X[i] - self.X_train) ** 2, axis = 1))
       #######################################################################
       #                         END OF YOUR CODE                            #
       #######################################################################
@@ -133,7 +138,9 @@ class KMeans(object):
     # HINT: Try to formulate the l2 distance using matrix multiplication    #
     #       and two broadcast sums.                                         #
     #########################################################################
-    pass
+    x = np.repeat(np.sum(X**2, axis=1).reshape((-1,1)), self.centroids.shape[0], axis=1)
+    y = np.repeat(np.sum(self.centroids.T**2, axis=0).reshape((1,-1)), X.shape[0], axis=0)
+    dists = np.sqrt( x - 2 * np.dot(X, self.centroids.T) + y)
     #########################################################################
     #                         END OF YOUR CODE                              #
     #########################################################################
@@ -164,7 +171,7 @@ class KMeans(object):
       # testing point.                                                        #
       # Hint: Look up the function numpy.argsort.                             #
       #########################################################################
-      pass
+      y_pred[i] = np.argsort(dists[i,:])[0]
       #########################################################################
       #                           END OF YOUR CODE                            # 
       #########################################################################
